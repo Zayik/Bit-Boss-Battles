@@ -10,7 +10,7 @@ $(document).ready(function () {
     var sound = false;
 
     // Boss vars
-    var nextBoss = "nifty255";
+    var nextBoss = "BiffMasterZay";
     ActionManager.pauseProcessing = true;
 
     // Timeout and Interval handlers
@@ -65,6 +65,9 @@ $(document).ready(function () {
     var counter = $("#hp");
     var avatarimg = $("#avatar");    
     
+    // Presentation Interface
+    var bossPresentationInterface = new BossPresentationInterface();
+
     // Bits gifs
     
     // 1 bit
@@ -206,8 +209,8 @@ $(document).ready(function () {
 
                 GetNewBoss();
                 Listen(
-                    ["channel-bits-events-v1." + channelId, "channel-points-channel-v1."+ channelId, "channel-subscribe-events-v1."+ channelId] , 
-                    access_Token, 
+                    ["channel-bits-events-v2." + channelId, "channel-points-channel-v1."+ channelId, "channel-subscribe-events-v1."+ channelId] , 
+                    access_token, 
                     [ProcessBitEventData, ProcessChannelPointsEventData, ProcessSubscriberEventData]);
             });
         },
@@ -273,38 +276,17 @@ $(document).ready(function () {
 
         if (nextBoss == "")
         {
-            GetUserInfo(message.user_name, function(info) {
-                
-                $("#attackerdisplay").css({
-                    
-                    "opacity": "0"
-                });
-                
-                var amount = "";
-                
-                if (bits_used < 100) { amount = "1"; }
-                else if (bits_used < 1000) { amount = "100"; }
-                else if (bits_used < 5000) { amount = "1000"; }
-                else if (bits_used < 10000) { amount = "5000"; }
-                else { amount = "10000"; }
-                
+            GetUserInfo(message.user_name, function(info) 
+            {
                 if (info.displayName == $("#name").html())
                 {
                     if (bossHeal)
                     {
-                        $("#attackerdisplay").html("<img id='cheerimg' src='https://d3aqoihi2n8ty8.cloudfront.net/actions/" + context + "/light/animated/" + amount + "/1.gif?a=" + Math.random() + "'>" + info.displayName + " heals!");
-
-                        $("#attackerdisplay").stop().animate({ "opacity": "1" }, 1000, "linear", function() { setTimeout(function() { $("#attackerdisplay").css("opacity", "0"); $("#attackerdisplay").html("&nbsp;"); }, 1000) });
-
                         Heal(bits_used, user_name, info.displayName);
                     }
                 }
                 else
                 {
-                    $("#attackerdisplay").html("<img id='cheerimg' src='https://d3aqoihi2n8ty8.cloudfront.net/actions/" + context + "/light/animated/" + amount + "/1.gif?a=" + Math.random() + "'>" + info.displayName + " attacks!");
-
-                    $("#attackerdisplay").stop().animate({ "opacity": "1" }, 1000, "linear", function() { setTimeout(function() { $("#attackerdisplay").css("opacity", "0"); $("#attackerdisplay").html("&nbsp;"); }, 1000) });
-
                     Strike(bits_used, user_name, info.displayName);
                 }
             });
@@ -322,53 +304,33 @@ $(document).ready(function () {
 
         if(nextBoss == "")
         {
-            GetUserInfo(redemptionData.user.login, function(info) {
+            GetUserInfo(redemptionData.user.login, function(info) {  
                 
-                $("#attackerdisplay").css({
-                    
-                    "opacity": "0"
-                });
-                
-                var amount = "";
                 pointCost = redemptionData.reward.cost / 10;
-
-                if (pointCost < 100) { amount = "1"; }
-                else if (pointCost < 1000) { amount = "100"; }
-                else if (pointCost < 5000) { amount = "1000"; }
-                else if (pointCost < 10000) { amount = "5000"; }
-                else { amount = "10000"; }
                 
                 if (info.displayName == $("#name").html())
                 {
                     if(bossHeal)
                     {
-                        $("#attackerdisplay").html("<img id='cheerimg' src='https://d3aqoihi2n8ty8.cloudfront.net/actions/" + message.context + "/light/animated/" + amount + "/1.gif?a=" + Math.random() + "'>" + info.displayName + " heals!");
-
-                        $("#attackerdisplay").stop().animate({ "opacity": "1" }, 1000, "linear", function() { setTimeout(function() { $("#attackerdisplay").css("opacity", "0"); $("#attackerdisplay").html("&nbsp;"); }, 1000) });
-
                         Heal(pointCost, redemptionData.user.login, info.displayName);
                     }
                 }
                 else
                 {
-                    $("#attackerdisplay").html("<img id='cheerimg' src='https://d3aqoihi2n8ty8.cloudfront.net/actions/" + message.context + "/light/animated/" + amount + "/1.gif?a=" + Math.random() + "'>" + info.displayName + " attacks!");
-
-                    $("#attackerdisplay").stop().animate({ "opacity": "1" }, 1000, "linear", function() { setTimeout(function() { $("#attackerdisplay").css("opacity", "0"); $("#attackerdisplay").html("&nbsp;"); }, 1000) });
-
                     Strike(pointCost, redemptionData.user.login, info.displayName);
                 }
             });
         }
     }
     
-    function Heal(amount, healer, display) {
+    function Heal(bit_points, healer, display) {
         
         if (nextBoss == "")
         {
-            $("#strikeimg").remove();
+            bossPresentationInterface.HealPresentation(display, bit_points, "cheer");
             if (imgRemove != null) { clearTimeout(imgRemove); }
-            
-            loss -= amount;
+
+            loss -= bit_points;
             setCookie("currentHp", Math.min(hp - loss, hpAmnt).toString());
 
             isDelayed = true;
@@ -415,10 +377,20 @@ $(document).ready(function () {
             
             if (sound) { hits[GetRandomInt(0, hits.length - 1)].play(); }
 
+            $("#attackerdisplay").css({
+                    
+                "opacity": "0"
+            });
+
+            $("#attackerdisplay").html("<img id='cheerimg' src='https://d3aqoihi2n8ty8.cloudfront.net/actions/" + message.context + "/light/animated/" + amount + "/1.gif?a=" + Math.random() + "'>" + info.displayName + " attacks!");
+
+            $("#attackerdisplay").stop().animate({ "opacity": "1" }, 1000, "linear", function() { setTimeout(function() { $("#attackerdisplay").css("opacity", "0"); $("#attackerdisplay").html("&nbsp;"); }, 1000) });
+
             $("#strikeimg").remove();
             if (imgRemove != null) { clearTimeout(imgRemove); }
             avatarimg.after('<img id="strikeimg" src="' + imgToUse + '?a=' + Math.random() + '"/>');
             imgRemove = setTimeout(function() { $("#strikeimg").remove(); }, 1000);
+
 
             loss += amount;
             // Boss has been defeated!
@@ -739,7 +711,7 @@ $(document).ready(function () {
             Shake();
         }
 
-        if (lossOffset > 0)
+        if(lossOffset > 0)
         {
             lossOffset = Math.max(0, lossOffset - (20 / 50));
 

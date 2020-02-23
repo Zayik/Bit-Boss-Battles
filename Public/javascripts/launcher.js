@@ -26,11 +26,11 @@ $(document).ready(function() {
 
     function LaunchAuth() {
 
-        window.open("https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=" + clientId + "&redirect_uri=" + redirectUri + "&scope=user_read", "", "width=400,height=512");
+        window.open("https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=" + clientId + "&redirect_uri=" + redirectUri + "&scope=user_read bits:read channel:read:redemptions channel_subscriptions", "", "width=400,height=512");
     }
     function LaunchForce() {
 
-        window.open("https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=" + clientId + "&redirect_uri=" + redirectUri + "&scope=user_read&force_verify=true", "", "width=400,height=512");
+        window.open("https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=" + clientId + "&redirect_uri=" + redirectUri + "&scope=user_read bits:read channel:read:redemptions channel_subscriptions&force_verify=true", "", "width=400,height=512");
     }
     function LaunchApp() {
 
@@ -44,7 +44,7 @@ $(document).ready(function() {
 
         setCookie("currentBoss", "");
         setCookie("currentHp", "0");
-        setCookie("auth", "");
+        setCookie("access_token", "");
         $("#launch").prop("disabled", true);
         $("#link").html("<span style='color: red;'>App not yet authorized. Authorize the app to get a link.</span>");
     }
