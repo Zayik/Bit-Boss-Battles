@@ -11,6 +11,7 @@ $(document).ready(function () {
 
     // Boss vars
     var nextBoss = "nifty255";
+    ActionManager.pauseProcessing = true;
 
     // Timeout and Interval handlers
     var imgRemove = null;
@@ -170,23 +171,27 @@ $(document).ready(function () {
     }
     
     nextBoss = getCookie("currentBoss", "");
+    ActionManager.pauseProcessing = nextBoss != null
     prevHp = Math.min(parseInt(getCookie("currentHp", "0")), hpAmnt);
 
     $.ajax({
-        url: "https://api.twitch.tv/kraken/user",
+        url: "https://api.twitch.tv/helix/users",
         type: "GET",
-        beforeSend: function(xhr){ xhr.setRequestHeader('Authorization', "OAuth " + oauth); xhr.setRequestHeader('Client-Id', clientId); },
+        beforeSend: function(xhr){ xhr.setRequestHeader('Authorization', "Bearer " + accessToken); xhr.setRequestHeader('Client-Id', clientId); },
         success: function(data) {
-            
-            channelId = data._id;
+            userInfo = data["data"][0];
+            channelId = userInfo.id;
+            if (nextBoss == "") 
+            { 
+                nextBoss = userInfo.display_name; 
+                ActionManager.pauseProcessing = true;
+                setCookie("currentBoss", nextBoss); 
+            }
 
-            if (nextBoss == "") { nextBoss = data.name; setCookie("currentBoss", nextBoss); }
-
-            Connect("wss://pubsub-edge.twitch.tv", function() {
+            Connect("wss://pubsub-edge.twitch.tv:443", function() {
 
                 GetNewBoss();
-
-                Listen("channel-bitsevents." + channelId, oauth, InterpretData);
+                Listen(["channel-bits-events-v1." + channelId, "channel-points-channel-v1."+ channelId] , accessToken, [ProcessBitEventData, ProcessChannelPointsEventData]);
             });
         },
         error: function(data) {
@@ -195,13 +200,21 @@ $(document).ready(function () {
         }
       });
     
-    function InterpretData(message) {
-        
+    function ProcessBitEventData(message)
+    {
+        ActionManager.actions.push(new Action(InterpretBitEventData, message));
+    }
+
+    function ProcessChannelPointsEventData(message)
+    {
+        ActionManager.actions.push(new Action(InterpretChannelPointsEventData, message));
+    }
+
+    function InterpretBitEventData(message) {
         if (!message) { return; }
         if (!message.user_name) { return; }
         if (!message.bits_used) { return; }
         if (!message.context) { return; }
-        
         if (nextBoss == "")
         {
             GetUserInfo(message.user_name, function(info) {
@@ -237,6 +250,56 @@ $(document).ready(function () {
                     $("#attackerdisplay").stop().animate({ "opacity": "1" }, 1000, "linear", function() { setTimeout(function() { $("#attackerdisplay").css("opacity", "0"); $("#attackerdisplay").html("&nbsp;"); }, 1000) });
 
                     Strike(message.bits_used, message.user_name, info.displayName);
+                }
+            });
+        }
+    }
+
+    function InterpretChannelPointsEventData(message) {
+        if (!message) { return; }
+        if (!message.data) { return; }
+        if (!message.data.redemption) { return; }
+        if (!message.type == "reward-redeemed") { return; }
+        console.log(message);
+        redemptionData = message.data.redemption
+        message.context = "cheer";
+
+        if(nextBoss == "")
+        {
+            GetUserInfo(redemptionData.user.login, function(info) {
+                
+                $("#attackerdisplay").css({
+                    
+                    "opacity": "0"
+                });
+                
+                var amount = "";
+                pointCost = redemptionData.reward.cost / 10;
+
+                if (pointCost < 100) { amount = "1"; }
+                else if (pointCost < 1000) { amount = "100"; }
+                else if (pointCost < 5000) { amount = "1000"; }
+                else if (pointCost < 10000) { amount = "5000"; }
+                else { amount = "10000"; }
+                
+                if (info.displayName == $("#name").html())
+                {
+                    if(bossHeal)
+                    {
+                        $("#attackerdisplay").html("<img id='cheerimg' src='https://d3aqoihi2n8ty8.cloudfront.net/actions/" + message.context + "/light/animated/" + amount + "/1.gif?a=" + Math.random() + "'>" + info.displayName + " heals!");
+
+                        $("#attackerdisplay").stop().animate({ "opacity": "1" }, 1000, "linear", function() { setTimeout(function() { $("#attackerdisplay").css("opacity", "0"); $("#attackerdisplay").html("&nbsp;"); }, 1000) });
+
+                        Heal(pointCost, redemptionData.user.login, info.displayName);
+                    }
+                }
+                else
+                {
+                    $("#attackerdisplay").html("<img id='cheerimg' src='https://d3aqoihi2n8ty8.cloudfront.net/actions/" + message.context + "/light/animated/" + amount + "/1.gif?a=" + Math.random() + "'>" + info.displayName + " attacks!");
+
+                    $("#attackerdisplay").stop().animate({ "opacity": "1" }, 1000, "linear", function() { setTimeout(function() { $("#attackerdisplay").css("opacity", "0"); $("#attackerdisplay").html("&nbsp;"); }, 1000) });
+
+                    Strike(pointCost, redemptionData.user.login, info.displayName);
                 }
             });
         }
@@ -305,6 +368,7 @@ $(document).ready(function () {
                 console.log("Overkill: " + overkill.toString());
                 
                 nextBoss = attacker;
+                ActionManager.pauseProcessing = true;
                 counter.html("Final Blow: " + display);
                 
                 setCookie("currentBoss", nextBoss);
@@ -492,14 +556,15 @@ $(document).ready(function () {
         if (username == "") { return; }
         if (!callback) { return; }
 
-        $.get("https://api.twitch.tv/kraken/users/" + username + "?client_id=" + clientId, function(response, status) {
-            
-            if (status == "success")
-            {
-                callback({ displayName: response.display_name, logo: response.logo });
-            }
-            else
-            {
+        $.ajax({
+            url: "https://api.twitch.tv/helix/users?login=" + username,
+            type: "GET",
+            beforeSend: function(xhr){ xhr.setRequestHeader('Authorization', "Bearer " + accessToken); xhr.setRequestHeader('Client-Id', clientId); },
+            success: function(data) {
+                userInfo = data["data"][0];
+                callback({ displayName: userInfo.display_name, logo: userInfo.profile_image_url });
+            },
+            error: function(data) {
                 console.log("Error: " + status);
                 console.log(response);
                 $("body").html("<h1 style='color: red;'>ERROR. FAILED USER GET.</h1>");
@@ -528,7 +593,10 @@ $(document).ready(function () {
         }
     }
     
+    /////////////////////////////////////////////////////////////////////////////
     // Animation loop
+    // Handles updating the display (shaking, health bar refilling, etc)
+    /////////////////////////////////////////////////////////////////////////////
     setInterval(function() {
 
         if (refill)
@@ -543,8 +611,10 @@ $(document).ready(function () {
             {
                 refill = false;
                 nextBoss = "";
+                ActionManager.pauseProcessing = false;
+                hitDelayWidth = ((delayed / hpAmnt) * 100).toString() + "%";
                 hitdelay.css({
-                    "width": health.css("width"),
+                    "width": hitDelayWidth,
                     "visibility": "visible"
                 });
             }
@@ -597,6 +667,10 @@ $(document).ready(function () {
             }, 500);
         }
         
+
+        /////////////////////////////////////////////////////////////////////////////
+        // Handle scrolling of the display name.
+        /////////////////////////////////////////////////////////////////////////////
         var nameWidth = $("#test").width();
         var scrollWidth = $("#scroll").width();
         
@@ -620,10 +694,4 @@ $(document).ready(function () {
             }
         }
     }, (1000/60));
-    
-//    Fake("topic", InterpretData);
-    
-//    $("#fake").click(function() {
-//        InterpretMessage({ data: '{"type":"MESSAGE","data":{"topic":"topic","message":"{\\"user_name\\":\\"nifty255\\",\\"bits_used\\":20,\\"context\\":\\"cheer\\"}"}}' });
-//    });
 });

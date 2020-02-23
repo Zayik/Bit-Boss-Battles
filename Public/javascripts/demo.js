@@ -12,6 +12,7 @@ $(document).ready(function () {
     // Boss vars
     var currentBoss = "";
     var nextBoss = "nifty255";
+    ActionManager.pauseProcessing = true;
 
     // Timeout and Interval handlers
     var imgRemove = null;
@@ -109,9 +110,10 @@ $(document).ready(function () {
     }
     
     nextBoss = "nifty255";
+    ActionManager.pauseProcessing = true;
     GetNewBoss();
     
-    function InterpretData(message)
+    function InterpretBitEventData(message)
     {
         if (!message) { return; }
         if (!message.user_name) { return; }
@@ -218,6 +220,7 @@ $(document).ready(function () {
                 console.log("Overkill: " + overkill.toString());
                 
                 nextBoss = attacker;
+                ActionManager.pauseProcessing = true;
                 counter.html("Final Blow: " + display);
                 
                 setCookie("currentBoss", nextBoss);
@@ -386,13 +389,22 @@ $(document).ready(function () {
     }
     
     function GetUserInfo(username, callback) {
-        
         if (username == "") { return; }
         if (!callback) { return; }
 
-        $.get("https://api.twitch.tv/kraken/users/" + username + "?client_id=" + clientId, function(response) {
-            
-            callback({ displayName: response.display_name, logo: response.logo });
+        $.ajax({
+            url: "https://api.twitch.tv/helix/users?login=" + username,
+            type: "GET",
+            beforeSend: function(xhr){ xhr.setRequestHeader('Authorization', "Bearer " + accessToken); xhr.setRequestHeader('Client-Id', clientId); },
+            success: function(data) {
+                userInfo = data["data"][0];
+                callback({ displayName: userInfo.display_name, logo: userInfo.profile_image_url });
+            },
+            error: function(data) {
+                console.log("Error: " + status);
+                console.log(response);
+                $("body").html("<h1 style='color: red;'>ERROR. FAILED USER GET.</h1>");
+            }
         });
     }
 
@@ -433,6 +445,7 @@ $(document).ready(function () {
                 refill = false;
                 currentBoss = nextBoss;
                 nextBoss = "";
+                ActionManager.pauseProcessing = false;
                 hitdelay.css({
                     "width": "100%",
                     "visibility": "visible"
@@ -512,10 +525,38 @@ $(document).ready(function () {
         }
     }, (1000/60));
 
-    $("#strike1").click(function () { InterpretData({ user_name: $("#attackerinput").val(), bits_used: 1, context: "cheer" }); });
-    $("#strike100").click(function () { InterpretData({ user_name: $("#attackerinput").val(), bits_used: 100, context: "cheer" }); });
-    $("#strike1000").click(function () { InterpretData({ user_name: $("#attackerinput").val(), bits_used: 1000, context: "cheer" }); });
-    $("#strike5000").click(function () { InterpretData({ user_name: $("#attackerinput").val(), bits_used: 5000, context: "cheer" }); });
-    $("#strike10000").click(function () { InterpretData({ user_name: $("#attackerinput").val(), bits_used: 10000, context: "cheer" }); });
-    $("#heal").click(function () { InterpretData({ user_name: currentBoss, bits_used: 25, context: "cheer" }); });
+    $("#strike1").click(function () 
+    { 
+        var msg = { user_name: $("#attackerinput").val(), bits_used: 1, context: "cheer" };
+        ActionManager.actions.push(new Action(InterpretBitEventData, msg));
+    });
+    $("#strike100").click(function () 
+    { 
+        var msg = { user_name: $("#attackerinput").val(), bits_used: 100, context: "cheer" };
+        ActionManager.actions.push(new Action(InterpretBitEventData, msg));
+    });
+
+    $("#strike1000").click(function () 
+    { 
+        var msg = { user_name: $("#attackerinput").val(), bits_used: 1000, context: "cheer" };
+        ActionManager.actions.push(new Action(InterpretBitEventData, msg));
+    });
+
+    $("#strike5000").click(function () 
+    { 
+        var msg = { user_name: $("#attackerinput").val(), bits_used: 5000, context: "cheer" };
+        ActionManager.actions.push(new Action(InterpretBitEventData, msg));
+    });
+
+    $("#strike10000").click(function () 
+    { 
+        var msg = { user_name: $("#attackerinput").val(), bits_used: 10000, context: "cheer" };
+        ActionManager.actions.push(new Action(InterpretBitEventData, msg));
+    });
+
+    $("#heal").click(function () 
+    { 
+        var msg = { user_name: currentBoss, bits_used: 25, context: "cheer" };
+        ActionManager.actions.push(new Action(InterpretBitEventData, msg));
+    });
 });

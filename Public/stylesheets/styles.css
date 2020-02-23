@@ -1,13 +1,13 @@
 body { background-color: rgba(0,0,0,0); margin: 0; padding: 0px; }
 button { display: block; }
 div#boss { position: relative; color: white; margin: 0; margin-bottom: 17px; font-family: 'Press Start 2P', cursive; }
-span#scroll {  position: absolute; margin: 0; max-width: 192px; overflow-x: hidden; }
-span#loss {  position: absolute; right: 0px; margin: 0; }
+span#scroll {  position: absolute; margin: 0; max-width: 70%; overflow-x: hidden; }
+span#loss {  position: absolute; right: 0px; margin: 0;}
 span#test { position: fixed; top: 200px; left: 500px; visibility: hidden; margin: 0; font-family: 'Press Start 2P', cursive; }
 span#attackerdisplay { margin: 0; }
 h5#hp { color: white; position: absolute; margin: 0; padding-left: 10px; font-family: 'Press Start 2P', cursive; top: 50%; -webkit-transform: translateY(-50%); -ms-transform: translateY(-50%); transform: translateY(-50%); z-index: 4; }
 span#loss { visibility: hidden; }
-div.allcontainer { background-color: #222; padding: 5px; width: 340px; height: 90px; }
+div.allcontainer { background-color: #222; padding: 5px; left: 10px; right: 10px; height: 100%; }
 div#imgcontainer { position: relative; display: inline-block; height: 65px; width: 65px; margin-right: 5px; }
 div#infocontainer { display: inline-block; vertical-align: top; width: calc(100% - 70px); }
 div#healthcontainer { position: relative; height: 32px; bottom: 0px; }

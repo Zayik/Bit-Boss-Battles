@@ -76,7 +76,7 @@ function Connect(url, success) {
     ws.onmessage = InterpretMessage;
 }
 
-function Listen(topic, auth, msgCallback) {
+function Listen(topics, auth, msgCallbacks) {
     
     if (ws != null)
     {
@@ -87,7 +87,7 @@ function Listen(topic, auth, msgCallback) {
                 "type": "LISTEN",
                 "nonce": nonce,
                 "data": {
-                    topics: [topic],
+                    topics: topics,
                     auth_token: auth
                 }
             };
@@ -97,13 +97,15 @@ function Listen(topic, auth, msgCallback) {
             
             for (var i = 0; i < messageCallback.length; i++)
             {
-                if (messageCallback[i].topic == topic)
+                if(topics.includes(messageCallback[i].topic))
                 {
                     return;
                 }
             }
-            
-            messageCallback.push({ topic: topic, callback: msgCallback });
+            for(var i = 0; i < topics.length; i++)
+            {
+                messageCallback.push({ topic: topics[i], callback: msgCallbacks[i] });
+            }
         }
     }
 }

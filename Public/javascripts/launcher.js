@@ -6,22 +6,35 @@ $(document).ready(function() {
 
         parseCookies();
 
-        if (getCookie("auth", "") != "") { $("#launch").prop("disabled", false); $("#link").html("http://bitbossbattles.herokuapp.com/app.html" + SettingsToString() + "&token=" + getCookie("auth", "")); }
+        if (getCookie("auth", "") != "") { $("#launch").prop("disabled", false); $("#link").html(baseUri + "app.html" + SettingsToString() + "&token=" + getCookie("auth", "")); }
     }, 250);
     
+    if (getCookie("currentBoss", "") != "")
+    {
+        $("#display-name").val(getCookie("currentBoss", ""));
+    }
+    if(getCookie("currentHp", "") != "")
+    {
+        $("#hp-current").val(getCookie("currentHp", ""));
+    }
+    if(getCookie("maxHp", "") != "")
+    {
+        $("#hp-maximum").val(getCookie("maxHp", ""));
+    }
+
     var appWindow = null;
 
     function LaunchAuth() {
 
-        window.open("https://api.twitch.tv/kraken/oauth2/authorize?response_type=token&client_id=" + clientId + "&redirect_uri=" + redirectUri + "&scope=user_read", "", "width=400,height=512");
+        window.open("https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=" + clientId + "&redirect_uri=" + redirectUri + "&scope=user_read", "", "width=400,height=512");
     }
     function LaunchForce() {
 
-        window.open("https://api.twitch.tv/kraken/oauth2/authorize?response_type=token&client_id=" + clientId + "&redirect_uri=" + redirectUri + "&scope=user_read&force_verify=true", "", "width=400,height=512");
+        window.open("https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=" + clientId + "&redirect_uri=" + redirectUri + "&scope=user_read&force_verify=true", "", "width=400,height=512");
     }
     function LaunchApp() {
 
-        appWindow = window.open("./app.html", "App", "width=350,height=100");
+        appWindow = window.open("./app.html", "App", "width=350px,height=100");
     }
     function LaunchDemo() {
 
@@ -36,6 +49,15 @@ $(document).ready(function() {
         $("#link").html("<span style='color: red;'>App not yet authorized. Authorize the app to get a link.</span>");
     }
     
+    function SetBitBoss() {
+        hp_amount = $("#hp-current").val();
+        max_hp_amount = $("#hp-maximum").val();
+        display_Name = $("#display-name").val();
+        setCookie("currentBoss", display_Name);
+        setCookie("currentHp", hp_amount);
+        setCookie("maxHp", max_hp_amount);
+    }
+
     function SettingsToString() {
         
         return "?sound=" + getCookie("sound", "false") + "&trans=" + getCookie("trans", "false") + "&chroma=" + getCookie("chroma", "false") + "&persistent=" + getCookie("persistent", "false") + "&bossheal=" + getCookie("bossheal", "false") + "&hptype=" + getCookie("hptype", "overkill") + "&hpmult=" + getCookie("hpmult", "1") + "&hpinit=" + getCookie("hpinit", "1000") + "&hpamnt=" + getCookie("hpamnt", "1000");
@@ -46,4 +68,5 @@ $(document).ready(function() {
     $("#launch").click(LaunchApp);
     $("#demo").click(LaunchDemo);
     $("#reset").click(Reset);
+    $("#setBoss").click(SetBitBoss);
 });

@@ -1,5 +1,6 @@
 // The client ID
-var clientId = "e0q2qpkzm4t8ausv47yr0q9mnmn61v";
-
+var clientId = "xmabmufjjekqhsbfqenk9yml72ckc3";
+var accessToken = "new-access-token"
 // The redirect URI
-var redirectUri = "http://bitbossbattles.herokuapp.com/auth.html";
+var redirectUri = "http://localhost:5500/Public/auth.html";
+var baseUri = "http://localhost:5500/Public/";
