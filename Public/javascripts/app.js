@@ -44,6 +44,13 @@ $(document).ready(function () {
     var hpMult = 1;
     var hpAmnt = 1000;
     var bossHeal = false;
+    var bossCurrentlyWounded = false;
+    
+    // Wounded Mode
+    var bossWoundedModeEnabled = false;
+    var bossWoundedMultiplier = 1;
+    var bossWoundedDuration = 1;
+    var bossWoundedTimer;
     
     // HP variables
     var prevHp = 0;
@@ -107,7 +114,7 @@ $(document).ready(function () {
     
     if (GetUrlParameter("token") != null)
     {
-        oauth = GetUrlParameter("token");
+        access_token = GetUrlParameter("token");
         sound = (GetUrlParameter("sound") == "true");
         if (GetUrlParameter("trans") == "true") { $(".allcontainer").css("background-color", "rgba(0,0,0,0)"); }
         if (GetUrlParameter("chroma") == "true") { $(".allcontainer").css("background-color", "#00f"); }
@@ -117,6 +124,10 @@ $(document).ready(function () {
         hpAmnt = (hpType == "overkill" ? parseInt(GetUrlParameter("hpinit")) || hpAmnt : parseInt(GetUrlParameter("hpamnt")) || hpAmnt);
         
         bossHeal = (GetUrlParameter("bossheal") == "true");
+
+        bossWoundedModeEnabled = (GetUrlParameter("bosswounded") == "true");
+        bossWoundedMultiplier = parseFloat(GetUrlParameter("bosswoundedmultiplier"));
+        bossWoundedDuration = parseFloat(GetUrlParameter("bosswoundedduration"));
         
         if (GetUrlParameter("persistent") != "true" || GetUrlParameter("reset") == "true")
         {
@@ -130,7 +141,7 @@ $(document).ready(function () {
     }
     else
     {
-        oauth = getCookie("auth", "");
+        access_token = getCookie("access_token", "");
         sound = (getCookie("sound", "") == "true");
         if (getCookie("trans", "") == "true") { $(".allcontainer").css("background-color", "rgba(0,0,0,0)"); }
         if (getCookie("chroma", "") == "true") { $(".allcontainer").css("background-color", "#00f"); }
@@ -140,7 +151,10 @@ $(document).ready(function () {
         hpAmnt = (hpType == "overkill" ? parseInt(getCookie("hpinit", "") || hpAmnt) : parseInt(getCookie("hpamnt", "")) || hpAmnt);
         
         bossHeal = (getCookie("bossheal", "") == "true");
-        
+        bossWoundedModeEnabled = (getCookie("bosswounded", "") == "true");
+        bossWoundedMultiplier = parseFloat(getCookie("bosswoundedmultiplier", ""));
+        bossWoundedDuration = parseFloat(getCookie("bosswoundedduration", ""));
+
         if (getCookie("persistent", "false") != "true")
         {
             setCookie("currentBoss", "");
@@ -155,7 +169,7 @@ $(document).ready(function () {
         hpAmnt = cookieHp;
     }
     
-    if (oauth == "") { $("body").html("<h1 style='color: red;'>ERROR. NO AUTH.</h1>"); return; }
+    if (access_token == "") { $("body").html("<h1 style='color: red;'>ERROR. NO AUTH.</h1>"); return; }
     
     if (window.addEventListener)
     {
@@ -177,7 +191,7 @@ $(document).ready(function () {
     $.ajax({
         url: "https://api.twitch.tv/helix/users",
         type: "GET",
-        beforeSend: function(xhr){ xhr.setRequestHeader('Authorization', "Bearer " + accessToken); xhr.setRequestHeader('Client-Id', clientId); },
+        beforeSend: function(xhr){ xhr.setRequestHeader('Authorization', "Bearer " + access_token); xhr.setRequestHeader('Client-Id', clientId); },
         success: function(data) {
             userInfo = data["data"][0];
             channelId = userInfo.id;
@@ -191,30 +205,72 @@ $(document).ready(function () {
             Connect("wss://pubsub-edge.twitch.tv:443", function() {
 
                 GetNewBoss();
-                Listen(["channel-bits-events-v1." + channelId, "channel-points-channel-v1."+ channelId] , accessToken, [ProcessBitEventData, ProcessChannelPointsEventData]);
+                Listen(
+                    ["channel-bits-events-v1." + channelId, "channel-points-channel-v1."+ channelId, "channel-subscribe-events-v1."+ channelId] , 
+                    access_Token, 
+                    [ProcessBitEventData, ProcessChannelPointsEventData, ProcessSubscriberEventData]);
             });
         },
         error: function(data) {
-            
             $("body").html("<h1 style='color: red;'>ERROR. FAILED STREAMER GET.</h1>");
         }
       });
     
-    function ProcessBitEventData(message)
+    function ProcessBitEventData(eventMessage)
     {
-        ActionManager.actions.push(new Action(InterpretBitEventData, message));
+        ActionManager.actions.push(new Action(InterpretBitEventData, eventMessage));
     }
 
-    function ProcessChannelPointsEventData(message)
+    function ProcessChannelPointsEventData(eventMessage)
     {
-        ActionManager.actions.push(new Action(InterpretChannelPointsEventData, message));
+        ActionManager.actions.push(new Action(InterpretChannelPointsEventData, eventMessage));
     }
 
-    function InterpretBitEventData(message) {
+    function ProcessSubscriberEventData(eventMessage)
+    {
+        ActionManager.actions.push(new Action(InterpretSubscriberEventData, eventMessage));
+    }
+
+    function InterpretSubscriberEventData(eventMessage) 
+    {
+        message = eventMessage.data.message;
+        console.log(message);
+        if (!message) { return; }
+        if (!message.user_name) { return; }
+        if (!message.sub_plan) { return; }
+
+        var subBits = 0;
+        // Convert subscription to bit
+        switch(message.sub_plan)
+        {
+            case "Prime":
+            case "1000":
+                subBits = 500;
+            case "2000":
+                subBits = 1000;
+            case "3000":
+                subBits = 2500;
+        }
+
+        ApplyAttackBits(message.user_name, subBits, "cheer");
+    }
+
+    function InterpretBitEventData(eventMessage) {
+        message = eventMessage.data.message.data;
         if (!message) { return; }
         if (!message.user_name) { return; }
         if (!message.bits_used) { return; }
         if (!message.context) { return; }
+
+        ApplyAttackBits(message.user_name, message.bits_used, message.context);
+    }
+
+    function ApplyAttackBits(user_name, bits_used, context)
+    {
+        if (!user_name) { return; }
+        if (!bits_used) { return; }
+        if (!context) { return; }
+
         if (nextBoss == "")
         {
             GetUserInfo(message.user_name, function(info) {
@@ -226,30 +282,30 @@ $(document).ready(function () {
                 
                 var amount = "";
                 
-                if (message.bits_used < 100) { amount = "1"; }
-                else if (message.bits_used < 1000) { amount = "100"; }
-                else if (message.bits_used < 5000) { amount = "1000"; }
-                else if (message.bits_used < 10000) { amount = "5000"; }
+                if (bits_used < 100) { amount = "1"; }
+                else if (bits_used < 1000) { amount = "100"; }
+                else if (bits_used < 5000) { amount = "1000"; }
+                else if (bits_used < 10000) { amount = "5000"; }
                 else { amount = "10000"; }
                 
                 if (info.displayName == $("#name").html())
                 {
                     if (bossHeal)
                     {
-                        $("#attackerdisplay").html("<img id='cheerimg' src='https://d3aqoihi2n8ty8.cloudfront.net/actions/" + message.context + "/light/animated/" + amount + "/1.gif?a=" + Math.random() + "'>" + info.displayName + " heals!");
+                        $("#attackerdisplay").html("<img id='cheerimg' src='https://d3aqoihi2n8ty8.cloudfront.net/actions/" + context + "/light/animated/" + amount + "/1.gif?a=" + Math.random() + "'>" + info.displayName + " heals!");
 
                         $("#attackerdisplay").stop().animate({ "opacity": "1" }, 1000, "linear", function() { setTimeout(function() { $("#attackerdisplay").css("opacity", "0"); $("#attackerdisplay").html("&nbsp;"); }, 1000) });
 
-                        Heal(message.bits_used, message.user_name, info.displayName);
+                        Heal(bits_used, user_name, info.displayName);
                     }
                 }
                 else
                 {
-                    $("#attackerdisplay").html("<img id='cheerimg' src='https://d3aqoihi2n8ty8.cloudfront.net/actions/" + message.context + "/light/animated/" + amount + "/1.gif?a=" + Math.random() + "'>" + info.displayName + " attacks!");
+                    $("#attackerdisplay").html("<img id='cheerimg' src='https://d3aqoihi2n8ty8.cloudfront.net/actions/" + context + "/light/animated/" + amount + "/1.gif?a=" + Math.random() + "'>" + info.displayName + " attacks!");
 
                     $("#attackerdisplay").stop().animate({ "opacity": "1" }, 1000, "linear", function() { setTimeout(function() { $("#attackerdisplay").css("opacity", "0"); $("#attackerdisplay").html("&nbsp;"); }, 1000) });
 
-                    Strike(message.bits_used, message.user_name, info.displayName);
+                    Strike(bits_used, user_name, info.displayName);
                 }
             });
         }
@@ -325,10 +381,15 @@ $(document).ready(function () {
         }
     }
 
-    function Strike(amount, attacker, display) {
-        
+    function Strike(amount, attacker, display) 
+    {    
         if (nextBoss == "")
         {
+            if(bossWoundedModeEnabled && bossCurrentlyWounded)
+            {
+                amount = Math.floor(amount * bossWoundedMultiplier);
+            }
+
             var imgToUse = "";
 
             if (amount < 100)
@@ -360,6 +421,7 @@ $(document).ready(function () {
             imgRemove = setTimeout(function() { $("#strikeimg").remove(); }, 1000);
 
             loss += amount;
+            // Boss has been defeated!
             if (hp - loss <= 0)
             {
                 overkill = loss - hp;
@@ -373,7 +435,37 @@ $(document).ready(function () {
                 
                 setCookie("currentBoss", nextBoss);
                 
-                if (hpType == "overkill")
+                if(bossWoundedModeEnabled)
+                {
+                    bossCurrentlyWounded = true;
+                    // Start wounded animation
+                    $("#healthcontainer").css({
+                    
+                        "position": "relative",
+                        "height": "32px",
+                        "bottom" : "0px",
+                        "animation" : "shadow-pulse 2s infinite"
+                    });
+                    //position: relative; height: 32px; bottom: 0px;
+                    bossWoundedTimer = null;
+                    if(bossWoundedTimer) {
+                        clearTimeout(bossWoundedTimer); //cancel the previous timer.
+                        bossWoundedTimer = null;
+                    }
+                    bossWoundedTimer = setTimeout(function()
+                    { 
+                        bossCurrentlyWounded = false;
+                        // End wounded animation
+                        $("#healthcontainer").css({
+                            "position": "relative",
+                            "height": "32px",
+                            "bottom" : "0px",
+                            "animation" : "none"
+                        });
+                    }, bossWoundedDuration * 1000);
+                }
+
+                if(hpType == "overkill")
                 {
                     setCookie("currentHp", (overkill * hpMult < 100 ? 100 : overkill * hpMult));
                     setCookie("maxHp", (overkill * hpMult < 100 ? 100 : overkill * hpMult));
@@ -559,7 +651,7 @@ $(document).ready(function () {
         $.ajax({
             url: "https://api.twitch.tv/helix/users?login=" + username,
             type: "GET",
-            beforeSend: function(xhr){ xhr.setRequestHeader('Authorization', "Bearer " + accessToken); xhr.setRequestHeader('Client-Id', clientId); },
+            beforeSend: function(xhr){ xhr.setRequestHeader('Authorization', "Bearer " + access_token); xhr.setRequestHeader('Client-Id', clientId); },
             success: function(data) {
                 userInfo = data["data"][0];
                 callback({ displayName: userInfo.display_name, logo: userInfo.profile_image_url });

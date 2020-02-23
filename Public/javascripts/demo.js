@@ -395,7 +395,7 @@ $(document).ready(function () {
         $.ajax({
             url: "https://api.twitch.tv/helix/users?login=" + username,
             type: "GET",
-            beforeSend: function(xhr){ xhr.setRequestHeader('Authorization', "Bearer " + accessToken); xhr.setRequestHeader('Client-Id', clientId); },
+            beforeSend: function(xhr){ xhr.setRequestHeader('Authorization', "Bearer " + access_token); xhr.setRequestHeader('Client-Id', clientId); },
             success: function(data) {
                 userInfo = data["data"][0];
                 callback({ displayName: userInfo.display_name, logo: userInfo.profile_image_url });

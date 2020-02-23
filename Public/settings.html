@@ -12,7 +12,7 @@
     <body>
         <div class="main">
             <div class="container" style="margin-top: 0; padding-top: 0;">
-                <div style="text-align: center;"><img src="./images/logo.png"><br><h1 style="font-family: 'Press Start 2P', cursive;">By Nifty255</h1></div>
+                <div style="text-align: center;"><img src="./images/logo.png"><br><h1 style="font-family: 'Press Start 2P', cursive;">By Nifty255 <br><h3 style="font-family: 'Press Start 2P', cursive;">Modified by BiffMasterZay</h3></h1></div>
             </div>
             <ul class="nav nav-tabs nav-justified" role="tablist">
                 <li><a href="./index.html">Home</a></li>
@@ -29,9 +29,19 @@
                 <input type="checkbox" id="chroma"><label for="chroma">Chroma (Blue) Background</label><br>
                 <p class="padded">This turns the widget's background blue, overriding the Transparent Background option.</p>
                 <input type="checkbox" id="persistent"><label for="persistent">Persistent Mode</label><br>
-                <p class="padded">Saves cookies about the current boss and their health for persistence between streams. (The bug which previously broke this setting is <span style="color: red;">BELIEVED</span> to be fixed. Please submit a bug report on GitHub if you find an issue.)</p>
+                <p class="padded">Saves cookies about the current boss and their health for persistence between streams.</p>
                 <input type="checkbox" id="bossheal"><label for="bossheal">Boss Healing</label><br>
                 <p class="padded">When enabled, the current Bit Boss can donate bits to heal himself. The Bit Boss cannot increase his/her max health, only heal.</p>
+                
+                <input id="boss-wounded", type="checkbox"><label for="boss-wounded">Wounded</label><br>
+                <p class="padded">This setting causes the next Bit Boss to take increased damage for a period of time.</p>
+                <input type="radio" style="visibility: hidden;">Damage Taken Multiplier: </input>
+                <input type="number" id="boss-wounded-mult" min="1" max="10" value="1" step=".01" style="width: 100px;" disabled>
+                <input type="radio" style="visibility: hidden;">Wounded Duration (seconds): </input>
+                <input type="number" id="boss-wounded-duration" min="1" max="604800" value="1" step="10" style="width: 100px;" disabled>
+
+
+                <br>
                 <br>
                 <input type="checkbox" style="visibility: hidden;"><label for="bossheal">HP Settings</label><br>
                 <table>

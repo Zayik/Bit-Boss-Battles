@@ -20,7 +20,17 @@ $(document).ready(function() {
     if (getCookie("hpmult", "") != "") { $("#hp-mult").val(parseInt(getCookie("hpmult", "")) || 1) }
     if (getCookie("hpinit", "") != "") { $("#hp-init").val(parseInt(getCookie("hpinit", "")) || 1000) }
     if (getCookie("hpamnt", "") != "") { $("#hp-amnt").val(parseInt(getCookie("hpamnt", "")) || 1000) }
-    
+
+    // Get cookies for Wounded mode.
+    if (getCookie("bosswounded", "") == "true") { $("#boss-wounded").prop("checked", true); }
+    if (getCookie("bosswoundedmultiplier", "") != "") { $("#boss-wounded-mult").val(parseFloat(getCookie("bosswoundedmultiplier", "")) || 1) }
+    if (getCookie("bosswoundedduration", "") != "") { $("#boss-wounded-duration").val(parseFloat(getCookie("bosswoundedduration", "")) || 1) }
+    if($("#boss-wounded").prop("checked"))
+    {
+        $("#boss-wounded-mult").prop("disabled", false);
+        $("#boss-wounded-duration").prop("disabled", false);
+    }
+
     $("#sound").click(function() {
         
         setCookie("sound", $(this).prop("checked").toString());
@@ -76,5 +86,29 @@ $(document).ready(function() {
     $("#hp-amnt").change(function() {
         
         setCookie("hpamnt", $(this).val().toString());
+    });
+
+    $("#boss-wounded-mult").change(function() {
+        
+        setCookie("bosswoundedmultiplier", $(this).val().toString());
+    });
+
+    $("#boss-wounded-duration").change(function() {
+        
+        setCookie("bosswoundedduration", $(this).val().toString());
+    });
+
+    $("#boss-wounded").change(function() {
+        if($(this).prop("checked"))
+        {
+            $("#boss-wounded-mult").prop("disabled", false);
+            $("#boss-wounded-duration").prop("disabled", false);
+        }
+        else
+        {
+            $("#boss-wounded-mult").prop("disabled", true);
+            $("#boss-wounded-duration").prop("disabled", true);
+        }
+        setCookie("bosswounded", $(this).prop("checked").toString());
     });
 });

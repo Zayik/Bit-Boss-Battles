@@ -6,7 +6,7 @@ $(document).ready(function() {
 
         parseCookies();
 
-        if (getCookie("auth", "") != "") { $("#launch").prop("disabled", false); $("#link").html(baseUri + "app.html" + SettingsToString() + "&token=" + getCookie("auth", "")); }
+        if (getCookie("access_token", "") != "") { $("#launch").prop("disabled", false); $("#link").html(baseUri + "app.html" + SettingsToString() + "&token=" + getCookie("access_token", "")); }
     }, 250);
     
     if (getCookie("currentBoss", "") != "")
