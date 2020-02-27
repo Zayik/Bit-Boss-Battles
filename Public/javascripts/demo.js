@@ -99,7 +99,7 @@ $(document).ready(function () {
     var heal = "http://i.imgur.com/fOvRfRk.gif";
     
     parseCookies();
-    
+    access_token = getCookie("access_token", "");
     sound = (getCookie("sound", "") == "true");
     
     window.addEventListener("message", RefreshSettings, false);
