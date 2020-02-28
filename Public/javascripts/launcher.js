@@ -5,7 +5,7 @@ $(document).ready(function() {
     var authWait = setInterval(function() {
 
     parseCookies();
-    
+
         if (getCookie("access_token", "") != "") { $("#launch").prop("disabled", false); $("#link").html(baseUri + "app.html" + SettingsToString() + "&token=" + getCookie("access_token", "")); }
     }, 250);
     
@@ -21,6 +21,10 @@ $(document).ready(function() {
     {
         $("#hp-maximum").val(getCookie("maxHp", ""));
     }
+    if(getCookie("theme", "") != "")
+    {
+        $("#theme").val(getCookie("theme", ""));
+    }
 
     var appWindow = null;
 
@@ -33,8 +37,17 @@ $(document).ready(function() {
         window.open("https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=" + clientId + "&redirect_uri=" + redirectUri + "&scope=user_read bits:read channel:read:redemptions channel_subscriptions&force_verify=true", "", "width=400,height=512");
     }
     function LaunchApp() {
+        var theme = "zeldaTheme";
+        //var theme = "classicTheme";
+        switch(theme)
+        {
+            case "zeldaTheme":
+                appWindow = window.open("./zeldaTheme.html", "App", "width=300px,height=100px");
+                break;
+            case "classicTheme":
+                appWindow = window.open("./classicTheme.html", "App", "width=350px,height=100px");
 
-        appWindow = window.open("./app.html", "App", "width=350px,height=100");
+        }
     }
     function LaunchDemo() {
 

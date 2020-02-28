@@ -1,2 +1,2 @@
-web: node app.js
-webDebug: node-debug app.js
+web: node bitBossDriver.js
+webDebug: node-debug bitBossDriver.js

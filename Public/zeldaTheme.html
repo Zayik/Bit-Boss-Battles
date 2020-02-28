@@ -1,0 +1,56 @@
+<html>
+    <head>
+        <title>Bit Boss Battles | App</title>
+        <link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
+        <link href="./stylesheets/zeldaTheme.css" rel="stylesheet">
+        <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+        <script src="./javascripts/info.js"></script>
+        <script src="./javascripts/actionManager.js"></script>
+        <script src="./javascripts/sound.js"></script>
+        <script src="./javascripts/cookies.js"></script>
+        <script src="./javascripts/socket.js"></script>
+        <script src="./javascripts/bitBossDriver.js"></script>
+        <script src="./javascripts/zeldaThemeBossPresentationInterface.js"></script>
+    </head>
+    <body width:100%; height:100px; overflow-y: hidden;>
+        <div class="allcontainer">
+            <div>
+                <div id="imgcontainer">
+                    <img id="avatar"/>
+                </div><!--
+             --><div id="infocontainer">
+                    <div id="boss"><span id="scroll"><span id="name">&nbsp;</span></span>&nbsp;<span id="loss"></span>&nbsp;</span></div>
+                    <div id="healthcontainer">
+                        <h5 id="hp">HP: 0 / 1,000</h5>
+                        <ul id="hearts">
+                            <li id="heart1" class="FullHeart"></li>
+                            <li id="heart2" class="FullHeart"></li>
+                            <li id="heart3" class="FullHeart"></li>
+                            <li id="heart4" class="FullHeart"></li>
+                            <li id="heart5" class="FullHeart"></li>
+                            <li id="heart6" class="FullHeart"></li>
+                            <li id="heart7" class="FullHeart"></li>
+                            <li id="heart8" class="FullHeart"></li>
+                            <li id="heart9" class="FullHeart"></li>
+                            <li id="heart10" class="FullHeart"></li>
+                          </ul>                            
+
+                        <!-- <div id="background"></div>
+                        <div id="hitdelay"></div>
+                        <div id="health"></div> -->
+                        
+                    </div><!--
+                    --><div id="attackercontainer">
+                        <span id="attackerdisplay">&nbsp;</span>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+        <span id="test">&nbsp;</span>
+<!--
+        <div class="allcontainer" style="display: block; height: 20px; padding: 0px;"></div>
+        <button id="fake">Test.</button>
+-->
+    </body>
+</html>

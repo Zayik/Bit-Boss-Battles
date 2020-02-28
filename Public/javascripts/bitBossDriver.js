@@ -192,7 +192,7 @@ $(document).ready(function () {
     }
 
     function InterpretBitEventData(eventMessage) {
-        message = eventMessage.data.message.data;
+        message = eventMessage.data;
         if (!message) { return; }
         if (!message.user_name) { return; }
         if (!message.bits_used) { return; }
@@ -235,14 +235,24 @@ $(document).ready(function () {
         redemptionData = message.data.redemption
         message.context = "cheer";
 
+        if(redemptionData.reward.title !== "Majestic Prod" && redemptionData.reward.title !== "Prod" )
+        {
+            return;
+        }
+
         if(nextBoss == "")
         {
             GetUserInfo(redemptionData.user.login, function(info) {  
                 
                 pointCost = 0;
+                if(redemptionData.reward.title == "Prod")
+                {
+                    pointCost += 5;
+                }
+
                 if(redemptionData.reward.title == "Majestic Prod")
                 {
-                    pointCost += 80;
+                    pointCost += 25;
                 }
 
                 if (info.displayName == $("#name").html())
