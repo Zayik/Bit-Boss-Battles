@@ -86,7 +86,6 @@ class BossPresentationInterface {
         {
           _this.lossShowing = false;
           _this.hitShStop = setTimeout(function() {
-
                 $("#loss").css("visibility", "hidden");
             }, 500);
         }
@@ -125,7 +124,7 @@ class BossPresentationInterface {
       }, (1000/60));
     }
 
-    HealPresentation(displayname, bit_points, context)
+    HealPresentation(displayname, bit_points, context, criticalStrikeDamage)
     {
       var amount = "";
       if (bit_points < 100) { amount = "1"; }
@@ -139,7 +138,13 @@ class BossPresentationInterface {
           "opacity": "0"
       });
 
-      $("#attackerdisplay").html("<img id='cheerimg' src='https://d3aqoihi2n8ty8.cloudfront.net/actions/" + context + "/light/animated/" + amount + "/1.gif?a=" + Math.random() + "'>" + displayname + " heals!");
+      var healMsg = " heals!"
+      if(criticalStrikeDamage > 0)
+      {
+        healMsg = " crits!"
+      }
+
+      $("#attackerdisplay").html("<img id='cheerimg' src='https://d3aqoihi2n8ty8.cloudfront.net/actions/" + context + "/light/animated/" + amount + "/1.gif?a=" + Math.random() + "'>" + displayname + healMsg);
 
       $("#attackerdisplay").stop().animate({ "opacity": "1" }, 1000, "linear", function() { setTimeout(function() { $("#attackerdisplay").css("opacity", "0"); $("#attackerdisplay").html("&nbsp;"); }, 1000) });
 
@@ -149,7 +154,7 @@ class BossPresentationInterface {
 
     }
 
-    StrikePresentation(bit_points, attacker, context)
+    StrikePresentation(bit_points, attacker, context, criticalStrikeDamage)
     {
       var imgToUse = "";
       var amount = "";
@@ -186,7 +191,13 @@ class BossPresentationInterface {
           "opacity": "0"
       });
 
-      $("#attackerdisplay").html("<img id='cheerimg' src='https://d3aqoihi2n8ty8.cloudfront.net/actions/" + context + "/light/animated/" + amount + "/1.gif?a=" + Math.random() + "'>" + attacker + " attacks!");
+      var atkMsg = " attacks!"
+      if(criticalStrikeDamage > 0)
+      {
+        atkMsg = " crits!"
+      }
+
+      $("#attackerdisplay").html("<img id='cheerimg' src='https://d3aqoihi2n8ty8.cloudfront.net/actions/" + context + "/light/animated/" + amount + "/1.gif?a=" + Math.random() + "'>" + attacker + atkMsg);
 
       $("#attackerdisplay").stop().animate({ "opacity": "1" }, 1000, "linear", function() { setTimeout(function() { $("#attackerdisplay").css("opacity", "0"); $("#attackerdisplay").html("&nbsp;"); }, 1000) });
 
@@ -226,6 +237,7 @@ class BossPresentationInterface {
     UpdateCounterHealth(currentHealth, maxHealth)
     {
       this.counter.html("HP: " + Math.floor(currentHealth).toLocaleString("en-US") + " / " + maxHealth.toLocaleString("en-US"));
+      this.UpdateHearts(currentHealth, maxHealth);
     }
 
     UpdateCounterFinalDisplay(display)
@@ -234,6 +246,11 @@ class BossPresentationInterface {
     }
 
     UpdateHealth(currentHealth, maxHealth)
+    {
+      
+    }
+
+    UpdateHearts(currentHealth, maxHealth)
     {
       var ratio = currentHealth / maxHealth * 10
       var fullHearts = Math.ceil(ratio);
@@ -305,7 +322,7 @@ class BossPresentationInterface {
         });
       }, 1000);
 
-      if (this.sound) { damage[GetRandomInt(0, damage.length - 1)].play(); }
+      if (this.sound) { damage[this.GetRandomInt(0, damage.length - 1)].play(); }
     }
 
     RunHPPresentationForGain(loss, hp, hpAmnt, delayed)
@@ -374,21 +391,26 @@ class BossPresentationInterface {
     
     StartWoundedAnimation()
     {
-      // Start wounded animation
-      $("#healthcontainer").css(
-      {            
-        "position": "relative",
-        "animation" : "shadow-pulse 2s infinite"
-      });
+      for(var i = 0; i < 10; i++)
+      {
+        // Start wounded animation
+        this.hearts[i].css(
+        {            
+          "animation" : "shadow-pulse 2s infinite"
+        });
+      }
     }
 
     EndWoundedAnimation()
     {
-      // End wounded animation
-      $("#healthcontainer").css({
-        "position": "relative",
-        "animation" : "none"
-      });
+      for(var i = 0; i < 10; i++)
+      {
+        // Start wounded animation
+        this.hearts[i].css(
+        {            
+          "animation" : "none"
+        });
+      }
     }
 
     GetRandomInt(min, max) 

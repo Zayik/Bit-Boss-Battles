@@ -31,6 +31,16 @@ $(document).ready(function() {
         $("#boss-wounded-duration").prop("disabled", false);
     }
 
+    // Get cookies for Wounded mode.
+    if (getCookie("critical-strike-mode", "") == "true") { $("#critical-strike-mode").prop("checked", true); }
+    if (getCookie("base-critical-strike-chance", "") != "") { $("#base-critical-strike-chance").val(parseFloat(getCookie("base-critical-strike-chance", "")) || 1) }
+    if (getCookie("base-critical-strike-multiplier", "") != "") { $("#base-critical-strike-multiplier").val(parseFloat(getCookie("base-critical-strike-multiplier", "")) || 1) }
+    if($("#critical-strike-mode").prop("checked"))
+    {
+        $("#base-critical-strike-chance").prop("disabled", false);
+        $("#base-critical-strike-multiplier").prop("disabled", false);
+    }
+
     $("#sound").click(function() {
         
         setCookie("sound", $(this).prop("checked").toString());
@@ -110,5 +120,29 @@ $(document).ready(function() {
             $("#boss-wounded-duration").prop("disabled", true);
         }
         setCookie("bosswounded", $(this).prop("checked").toString());
+    });
+
+    $("#critical-strike-mode").change(function() {
+        if($(this).prop("checked"))
+        {
+            $("#base-critical-strike-chance").prop("disabled", false);
+            $("#base-critical-strike-multiplier").prop("disabled", false);
+        }
+        else
+        {
+            $("#base-critical-strike-chance").prop("disabled", true);
+            $("#base-critical-strike-multiplier").prop("disabled", true);
+        }
+        setCookie("critical-strike-mode", $(this).prop("checked").toString());
+    });
+
+    $("#base-critical-strike-chance").change(function() {
+        
+        setCookie("base-critical-strike-chance", $(this).val().toString());
+    });
+
+    $("#base-critical-strike-multiplier").change(function() {
+        
+        setCookie("base-critical-strike-multiplier", $(this).val().toString());
     });
 });

@@ -33,13 +33,21 @@
                 <input type="checkbox" id="bossheal"><label for="bossheal">Boss Healing</label><br>
                 <p class="padded">When enabled, the current Bit Boss can donate bits to heal himself. The Bit Boss cannot increase his/her max health, only heal.</p>
                 
-                <input id="boss-wounded", type="checkbox"><label for="boss-wounded">Wounded</label><br>
-                <p class="padded">This setting causes the next Bit Boss to take increased damage for a period of time.</p>
+                <input id="boss-wounded", type="checkbox"><label for="boss-wounded">Wounded Mode</label><br>
+                <p class="padded">When enabled, the next Bit Boss to take increased damage for a period of time. Wounde status does not persist when closing browser.</p>
                 <input type="radio" style="visibility: hidden;">Damage Taken Multiplier: </input>
-                <input type="number" id="boss-wounded-mult" min="1" max="10" value="1" step=".01" style="width: 100px;" disabled>
+                <input type="number" id="boss-wounded-mult" min="1" max="10" value="1" step=".01" style="width: 50;" disabled>x
                 <input type="radio" style="visibility: hidden;">Wounded Duration (seconds): </input>
-                <input type="number" id="boss-wounded-duration" min="1" max="604800" value="1" step="10" style="width: 100px;" disabled>
+                <input type="number" id="boss-wounded-duration" min="1" max="604800" value="1" step="10" style="width: 50;" disabled>s
 
+                <br/>
+                <br/>
+                <input id="critical-strike-mode", type="checkbox"><label for="critical-strike-mode">Critical Strike Mode</label><br>
+                <p class="padded">When enabled, this causes attacks and heals to have a chance to critical strike the bit boss.</p>
+                <input type="radio" style="visibility: hidden;">Base Critical Strike Chance: </input>
+                <input type="number" id="base-critical-strike-chance" min="0" max="100" value="5" step=".1" style="width: 50px;" disabled>%
+                <input type="radio" style="visibility: hidden;">Base Critical Strike Damage Multiplier: </input>
+                <input type="number" id="base-critical-strike-multiplier" min="1" max="100" value="1.25" step=".05" style="width: 50px;" disabled>x
 
                 <br>
                 <br>

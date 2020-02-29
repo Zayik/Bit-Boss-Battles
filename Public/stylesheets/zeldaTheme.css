@@ -24,6 +24,7 @@ ul#hearts li {
   display:inline-block;
   background-repeat: no-repeat;
   background-size: 100% 100%;
+  border-radius: 2px;
   width: 14px;
   height: 13px;
 }
@@ -43,9 +44,9 @@ ul#hearts li {
 @keyframes shadow-pulse
 {
   0% {
-    box-shadow: 0 0 0 0px rgba(255, 0, 0, 0.4);
+    box-shadow: 0 0 0 0px rgba(255, 0, 0, 0.8);
   }
   100% {
-    box-shadow: 0 0 0 10px rgba(255, 0, 0, 0);
+    box-shadow: 0 0 0 4px rgba(255, 0, 0, 0);
   }
 }

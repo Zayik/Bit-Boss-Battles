@@ -128,7 +128,7 @@ class BossPresentationInterface {
       }, (1000/60));
     }
 
-    HealPresentation(displayname, bit_points, context)
+    HealPresentation(displayname, bit_points, context, criticalStrikeDamage)
     {
       var amount = "";
       if (bit_points < 100) { amount = "1"; }
@@ -152,7 +152,7 @@ class BossPresentationInterface {
 
     }
 
-    StrikePresentation(bit_points, attacker, context)
+    StrikePresentation(bit_points, attacker, context, criticalStrikeDamage)
     {
       var imgToUse = "";
       var amount = "";

@@ -36,6 +36,16 @@ $(document).ready(function () {
     var bossWoundedDuration = 1;
     var bossWoundedTimer;
     
+
+    // Critical Mode
+    var criticalStrikeModeEnabled;
+    var baseCriticalStrikeChance;
+    var baseCriticalStrikeMultiplier;
+    // These two can be extra from abilities
+    var extraCriticalStrikeChance;
+    var extraCriticalStrikeDamage;
+    
+
     // HP variables
     var prevHp = 0;
     var hp = 0;
@@ -62,6 +72,10 @@ $(document).ready(function () {
         bossWoundedMultiplier = parseFloat(GetUrlParameter("bosswoundedmultiplier"));
         bossWoundedDuration = parseFloat(GetUrlParameter("bosswoundedduration"));
         
+        criticalStrikeModeEnabled = (GetUrlParameter("critical-Strike-mode") == "true");
+        baseCriticalStrikeChance = parseFloat(GetUrlParameter("base-critical-strike-chance"));
+        baseCriticalStrikeMultiplier = parseFloat(GetUrlParameter("base-critical-strike-multiplier"));
+
         if (GetUrlParameter("persistent") != "true" || GetUrlParameter("reset") == "true")
         {
             setCookie("currentBoss", "");
@@ -87,6 +101,10 @@ $(document).ready(function () {
         bossWoundedModeEnabled = (getCookie("bosswounded", "") == "true");
         bossWoundedMultiplier = parseFloat(getCookie("bosswoundedmultiplier", ""));
         bossWoundedDuration = parseFloat(getCookie("bosswoundedduration", ""));
+
+        criticalStrikeModeEnabled = (getCookie("critical-strike-mode", "") == "true");
+        baseCriticalStrikeChance = parseFloat(getCookie("base-critical-strike-chance", ""));
+        baseCriticalStrikeMultiplier = parseFloat(getCookie("base-critical-strike-multiplier", ""));
 
         if (getCookie("persistent", "false") != "true")
         {
@@ -274,8 +292,18 @@ $(document).ready(function () {
         
         if (nextBoss == "")
         {
-            bossPresentationInterface.HealPresentation(display, bit_points, context);
+            var criticalDamage = 0;
+            if(criticalStrikeModeEnabled)
+            {
+                var chance = (Math.random() * 100);
+                if(baseCriticalStrikeChance >= chance)
+                {
+                    criticalDamage = Math.floor(bit_points * (baseCriticalStrikeMultiplier - 1));
+                }
+            }
+            bit_points += criticalDamage;
 
+            bossPresentationInterface.HealPresentation(display, bit_points, context, criticalDamage);
 
             loss -= bit_points;
             setCookie("currentHp", Math.min(hp - loss, hpAmnt).toString());
@@ -299,7 +327,18 @@ $(document).ready(function () {
                 amount = Math.floor(amount * bossWoundedMultiplier);
             }
 
-            bossPresentationInterface.StrikePresentation(amount, attacker, context)
+            var criticalDamage = 0;
+            if(criticalStrikeModeEnabled)
+            {
+                var chance = (Math.random() * 100);
+                if(baseCriticalStrikeChance >= chance)
+                {
+                    criticalDamage = Math.floor(amount * (baseCriticalStrikeMultiplier - 1))
+                }
+            }
+            amount += criticalDamage;
+            
+            bossPresentationInterface.StrikePresentation(amount, attacker, context, criticalDamage)            
 
             loss += amount;
             // Boss has been defeated!
@@ -322,7 +361,6 @@ $(document).ready(function () {
                     bossCurrentlyWounded = true;
                     bossPresentationInterface.StartWoundedAnimation();
                     
-                    //position: relative; height: 32px; bottom: 0px;
                     bossWoundedTimer = null;
                     if(bossWoundedTimer) {
                         clearTimeout(bossWoundedTimer); //cancel the previous timer.
